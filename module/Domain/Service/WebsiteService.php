@@ -6,7 +6,7 @@ require_once('autoload_classmap.php');
 use Domain\Helper\FileHelper;
 use Domain\Service\UrlService;
 
-class WebsiteService 
+class WebsiteService implements ServiceInterface
 {	
 	/**
 	 * @var String 
