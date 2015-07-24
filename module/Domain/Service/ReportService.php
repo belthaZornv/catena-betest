@@ -102,8 +102,15 @@ class ReportService
 				$html .= '</body>';
 				$html .= '</html>';
 				
-				$reportDirectory = realpath(__DIR__ . '/../../../report');
-				$report = fopen($reportDirectory . "/Report - " . date('y-m-d_H-i-s') . ".html", 'w');
+				//getting report directory
+				$reportDirectory = __DIR__ . '\..\..\..\report';
+				
+				//Checking if the directory exists
+				if (!file_exists($reportDirectory)) {
+					mkdir($reportDirectory, 0777, true);
+				}
+				
+				$report = fopen($reportDirectory . "\Report - " . date('y-m-d_H-i-s') . ".html", 'w');
 				fwrite($report, $html);
 				
 				echo "\n\nReport generated....";
