@@ -9,7 +9,7 @@
 			'Domain\Service\UrlService'     				   => __DIR__ . '\module\Domain\Service\UrlService.php',
 			'Domain\Service\WebsiteService' 				   => __DIR__ . '\module\Domain\Service\WebsiteService.php',
 			
-			//ServiceInterface
+			//Service Interface
 			'Domain\Service\ServiceInterface' 				   => __DIR__ . '\module\Domain\Service\ServiceInterface.php',			
 
 			//Factory

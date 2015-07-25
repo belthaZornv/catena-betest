@@ -250,7 +250,7 @@ class WebsiteService implements ServiceInterface
 		$requestDraft['totalSize'] = "\nTotal requests download size: $totalSize\n";		
 		
 		//getting the total time to load the website + requests
-		$totalTime = (floatval($loadTime) + floatval($this->totalTime));		
+		$totalTime = (floatval($totalTime) + floatval($this->totalTime));		
 		$totalTime = ($totalTime > 1) ? $totalTime . 's' : $totalTime . 'ms';
 		
 		$requestDraft['loadTime'] = "Total load time: $totalTime";		
