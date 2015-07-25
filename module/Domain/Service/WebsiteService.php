@@ -5,6 +5,7 @@ require_once('autoload_classmap.php');
 
 use Domain\Helper\FileHelper;
 use Domain\Service\UrlService;
+use Domain\Service\ServiceInterface;
 
 class WebsiteService implements ServiceInterface
 {	
@@ -83,9 +84,27 @@ class WebsiteService implements ServiceInterface
 			
 	public function getWebsiteRequest()
 	{	
-		//used to store all the requests
-		$requests = [];
-			
+		//print out that the script is in process	
+		echo "Loading...\n\n";		
+							
+		//size for all requests
+		$totalSize = 0;
+		
+		//loading time for all requests
+		$totalTime = 0;					
+		
+		//array to categorize the types of requests and to format the return to the CLI
+		$requestDraft = [];				
+		
+		//types
+		$requestDraft['images'] = [];
+		$requestDraft['styles'] = [];
+		$requestDraft['scripts'] = [];
+		$requestDraft['documents'] = [];
+		$requestDraft['others'] = [];		
+		$requestDraft['requests'] = "";
+		
+		//Initializing a dom document
 		$domDocument = new \DOMDocument();
 		
 		//suppressing warnings on syntax and loading body (html)
@@ -93,8 +112,15 @@ class WebsiteService implements ServiceInterface
 		
 		$xpath = new \DOMXPath($domDocument);						
 		$sources = $xpath->evaluate("//@src|//link[@rel='stylesheet']/@href|//link[@rel='icon']/@href");
-			
-		echo "Loading...\n\n";
+		
+		//FileHelper
+		$fileHelper = new FileHelper();
+		
+		//properties needed inside the for loop
+		$type = null;				
+		$location = null; 
+		$size = 0; 
+		$loadTime = 0;
 		
 		//loop through src attributes (img, script, iframes etc)
 		for ($i = 0; $i < $sources->length; $i++) 
@@ -147,19 +173,15 @@ class WebsiteService implements ServiceInterface
 			if ($urlService->curlInitialize())
 			{
 				//getting content type service (FileService or WebsiteService)
-				$typeService = $urlService->getContentTypeService();
+				$typeService = $urlService->getContentTypeService();				
 				
 				//FileService
 				if ($typeService instanceof FileService)
 				{
-					$request = new \stdClass;
-					
-					$request->type = $sources->item($i)->parentNode->localName;
-					$request->location = $source;
-					$request->size = $typeService->getFileSize();
-					$request->loadTime = $typeService->getLoadTime();
-											
-					$requests[] = $request;																	
+					$type = $sources->item($i)->parentNode->localName;
+					$location = $source;
+					$size = $typeService->getFileSize();
+					$loadTime = $typeService->getLoadTime();																																
 				} 
 				
 				//WebsiteService
@@ -167,70 +189,47 @@ class WebsiteService implements ServiceInterface
 				{
 					$request = new \stdClass;
 					
-					$request->type = 'document';
-					$request->location = $source;
-					$request->size = $typeService->getFileSize();
-					$request->loadTime = $typeService->getLoadTime();
-					
-					$requests[] = $request;	
+					$type = 'document';
+					$location = $source;
+					$size = $typeService->getFileSize();
+					$loadTime = $typeService->getLoadTime();					
 				}
+				
+				//Categorizing request
+				switch ($type)
+				{
+					case 'img':
+						$requestDraft['images'][] = "- Location: " . $location . 
+													"\n- - Size: " . $fileHelper->formatSize($size) . 
+													"\n- - Finish: " . $loadTime . "\n";
+					break;
+					case 'link':
+						$requestDraft['styles'][] = "- Location: " . $location . 
+													"\n- - Size: " . $fileHelper->formatSize($size) . 
+													"\n- - Finish: " . $loadTime . "\n";	
+					break;
+					case 'script':
+						$requestDraft['scripts'][] = "- Location: " . $location . 
+													 "\n- - Size: " . $fileHelper->formatSize($size) . 
+													 "\n- - Finish: " . $loadTime . "\n";	
+					break;
+					case 'document':
+					    $requestDraft['documents'][] = "- Location: " . $location . 
+													   "\n- - Size: " . $fileHelper->formatSize($size) . 
+													   "\n- - Finish: " . $loadTime . "\n";
+					break;	
+					default:
+						$requestDraft['others'][] = "- Location: " . $location . 
+													"\n- - Size: " . $fileHelper->formatSize($size) . 
+													"\n- - Finish: " . $loadTime . "\n";
+					break;
+				}
+				
+				//Incrementing the totals
+				$totalSize = ($totalSize + $size);
+				$totalTime = (floatval($totalTime) + floatval($loadTime));				
 			}														
-		}
-		//array to categorize the types of requests and to format the return to the CLI
-		$requestDraft = [];				
-		
-		//types
-		$requestDraft['images'] = [];
-		$requestDraft['styles'] = [];
-		$requestDraft['scripts'] = [];
-		$requestDraft['documents'] = [];
-		$requestDraft['others'] = [];		
-		$requestDraft['requests'] = "";
-		
-		//size for all requests
-		$totalSize = 0;
-		
-		//loading time for all requests
-		$loadTime = 0;
-		
-		//FileHelper 
-		$fileHelper = new FileHelper();
-		
-		//putting requests into categories and formatting
-		foreach ($requests as $key => $request)
-		{
-			switch ($request->type)
-			{
-				case 'img':
-					$requestDraft['images'][] = "- Location: " . $request->location . 
-												"\n- - Size: " . $fileHelper->formatSize($request->size) . 
-												"\n- - Finish: " . $request->loadTime . "\n";
-				break;
-				case 'link':
-					$requestDraft['styles'][] = "- Location: " . $request->location . 
-												"\n- - Size: " . $fileHelper->formatSize($request->size) . 
-												"\n- - Finish: " . $request->loadTime . "\n";	
-				break;
-				case 'script':
-					$requestDraft['scripts'][] = "- Location: " . $request->location . 
-												 "\n- - Size: " . $fileHelper->formatSize($request->size) . 
-												 "\n- - Finish: " . $request->loadTime . "\n";	
-				break;
-				case 'document':
-				    $requestDraft['documents'][] = "- Location: " . $request->location . 
-												   "\n- - Size: " . $fileHelper->formatSize($request->size) . 
-												   "\n- - Finish: " . $request->loadTime . "\n";
-				break;	
-				default:
-					$requestDraft['others'][] = "- Location: " . $request->location . 
-												"\n- - Size: " . $fileHelper->formatSize($request->size) . 
-												"\n- - Finish: " . $request->loadTime . "\n";
-				break;
-			}
-	
-			$totalSize = ($totalSize + $request->size);
-			$loadTime = (floatval($loadTime) + floatval($request->loadTime));
-		}	
+		}		
 
 		//Format for CLI into sections including size.		
 		foreach (array_keys($requestDraft) as $key => $type)
@@ -251,10 +250,10 @@ class WebsiteService implements ServiceInterface
 		$requestDraft['totalSize'] = "\nTotal requests download size: $totalSize\n";		
 		
 		//getting the total time to load the website + requests
-		$loadTime = (floatval($loadTime) + floatval($this->totalTime));		
-		$loadTime = ($loadTime > 1) ? $loadTime . 's' : $loadTime . 'ms';
+		$totalTime = (floatval($loadTime) + floatval($this->totalTime));		
+		$totalTime = ($totalTime > 1) ? $totalTime . 's' : $totalTime . 'ms';
 		
-		$requestDraft['loadTime'] = "Total load time: $loadTime";		
+		$requestDraft['loadTime'] = "Total load time: $totalTime";		
 		
 		//return draft of the requests
 		return $requestDraft;    

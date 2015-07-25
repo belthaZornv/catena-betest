@@ -2,7 +2,9 @@
 namespace Domain\Service;
 
 require_once('autoload_classmap.php');
+
 use Domain\Helper\FileHelper;
+use Domain\Service\ServiceInterface;
 
 class FileService implements ServiceInterface
 {	

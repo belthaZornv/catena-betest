@@ -7,7 +7,10 @@
 			'Domain\Service\FileService'   					   => __DIR__ . '\module\Domain\Service\FileService.php',
 			'Domain\Service\ReportService'  				   => __DIR__ . '\module\Domain\Service\ReportService.php',
 			'Domain\Service\UrlService'     				   => __DIR__ . '\module\Domain\Service\UrlService.php',
-			'Domain\Service\WebsiteService' 				   => __DIR__ . '\module\Domain\Service\WebsiteService.php',			
+			'Domain\Service\WebsiteService' 				   => __DIR__ . '\module\Domain\Service\WebsiteService.php',
+			
+			//ServiceInterface
+			'Domain\Service\ServiceInterface' 				   => __DIR__ . '\module\Domain\Service\ServiceInterface.php',			
 
 			//Factory
 			'Domain\Factory\Service\ContentTypeServiceFactory' => __DIR__ . '\module\Domain\Factory\Service\ContentTypeServiceFactory.php',												
